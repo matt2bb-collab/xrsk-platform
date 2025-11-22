@@ -1,3 +1,10 @@
+import sys
+sys.path.append('..')
+from xrsk_styles import apply_xrsk_styles
+
+# Applique les styles
+apply_xrsk_styles()
+
 """
 XRSK Platform - Bridge Analytics
 """
