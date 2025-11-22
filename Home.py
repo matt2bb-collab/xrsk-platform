@@ -1,6 +1,6 @@
 """
-XRSK Platform - Dashboard principal enrichi
-Plus de données et métriques avancées
+XRSK Platform - Dashboard principal
+Version corrigée avec données réelles
 """
 
 import streamlit as st
@@ -10,7 +10,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from backend.collectors.defillama import DefiLlamaCollector
 
-# Configuration de la page
+# Configuration
 st.set_page_config(
     page_title="XRSK Platform - Cross-Chain Risk Intelligence",
     page_icon="🔗",
@@ -78,11 +78,10 @@ def load_bridge_data():
     if not bridges:
         return pd.DataFrame()
     df = pd.DataFrame(bridges)
-    # Calcul dominance
-    df['dominance'] = (df['tvl'] / df['tvl'].sum() * 100)
-    # Ratio Volume/TVL (indicateur d'activité)
-    # Ratio Volume/TVL avec protection division par zéro
-    df['volume_tvl_ratio'] = df.apply(lambda row: (row['volume_24h'] / row['tvl'] * 100) if row['tvl'] > 0 else 0, axis=1)
+    
+    # Calculs métriques supplémentaires
+    df['dominance_volume'] = (df['volume_24h'] / df['volume_24h'].sum() * 100)
+    
     return df
 
 with st.spinner("🔄 Chargement des données bridges..."):
@@ -92,41 +91,39 @@ if df_bridges.empty:
     st.error("❌ Impossible de charger les données. Vérifiez votre connexion.")
     st.stop()
 
-# ============================================
-# MÉTRIQUES CLÉS ENRICHIES
-# ============================================
+# Filtrer les bridges avec volume > 0 pour les stats
+df_active = df_bridges[df_bridges['volume_24h'] > 0].copy()
 
+# MÉTRIQUES CLÉS
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    total_tvl = df_bridges['tvl'].sum()
+    total_volume = df_active['volume_24h'].sum()
     st.metric(
-        label="TVL Total",
-        value=f"${total_tvl/1e9:.2f}B",
+        label="Volume 24h Total",
+        value=f"${total_volume/1e9:.2f}B",
         delta="Temps réel"
     )
 
 with col2:
-    total_volume = df_bridges['volume_24h'].sum()
-    avg_ratio = (total_volume / total_tvl * 100)
+    volume_7d = df_active['volume_7d'].sum()
     st.metric(
-        label="Volume 24h",
-        value=f"${total_volume/1e6:.1f}M",
-        delta=f"Ratio: {avg_ratio:.1f}%"
+        label="Volume 7j",
+        value=f"${volume_7d/1e9:.2f}B",
+        delta=f"+{((volume_7d/7)/(total_volume) - 1)*100:.1f}% vs avg"
     )
 
 with col3:
-    nb_bridges = len(df_bridges)
-    active_bridges = len(df_bridges[df_bridges['volume_24h'] > 1000])
+    nb_bridges = len(df_active)
     st.metric(
-        label="Bridges",
+        label="Bridges Actifs",
         value=f"{nb_bridges}",
-        delta=f"{active_bridges} actifs"
+        delta=f"{nb_bridges}/{len(df_bridges)} total"
     )
 
 with col4:
-    total_chains = df_bridges['chains_count'].sum()
-    avg_chains = df_bridges['chains_count'].mean()
+    total_chains = df_active['chains_count'].sum()
+    avg_chains = df_active['chains_count'].mean()
     st.metric(
         label="Blockchains",
         value=f"{total_chains}",
@@ -135,73 +132,65 @@ with col4:
 
 st.markdown("---")
 
-# ============================================
-# NOUVEAUTÉ : MÉTRIQUES SECONDAIRES
-# ============================================
-
-st.subheader("📊 Métriques du marché")
+# MÉTRIQUES SECONDAIRES
+st.subheader("📊 Analyse du marché")
 
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    top_bridge = df_bridges.nlargest(1, 'tvl').iloc[0]
+    top_bridge = df_active.nlargest(1, 'volume_24h').iloc[0]
     st.metric(
-        label="Bridge dominant",
+        label="Bridge le plus actif",
         value=f"{top_bridge['name'][:15]}",
-        delta=f"{top_bridge['dominance']:.1f}% du TVL"
+        delta=f"{top_bridge['dominance_volume']:.1f}% du volume"
     )
 
 with col2:
-    most_active = df_bridges.nlargest(1, 'volume_tvl_ratio').iloc[0]
+    avg_volume = df_active['volume_24h'].mean()
     st.metric(
-        label="Plus actif",
-        value=f"{most_active['name'][:15]}",
-        delta=f"Ratio: {most_active['volume_tvl_ratio']:.1f}%"
+        label="Volume moyen",
+        value=f"${avg_volume/1e6:.1f}M",
+        delta="par bridge"
     )
 
 with col3:
-    multi_chain = df_bridges.nlargest(1, 'chains_count').iloc[0]
+    median_volume = df_active['volume_24h'].median()
+    st.metric(
+        label="Volume médian",
+        value=f"${median_volume/1e6:.1f}M",
+        delta="50% des bridges"
+    )
+
+with col4:
+    multi_chain = df_active.nlargest(1, 'chains_count').iloc[0]
     st.metric(
         label="Multi-chain leader",
         value=f"{multi_chain['name'][:15]}",
         delta=f"{int(multi_chain['chains_count'])} chains"
     )
 
-with col4:
-    median_tvl = df_bridges['tvl'].median()
-    st.metric(
-        label="TVL médian",
-        value=f"${median_tvl/1e6:.1f}M",
-        delta="50% des bridges"
-    )
-
 st.markdown("---")
 
-# ============================================
-# TOP 10 BRIDGES PAR TVL (enrichi)
-# ============================================
+# TOP 10 BRIDGES
+st.subheader("🏆 Top 10 Bridges par Volume 24h")
 
-st.subheader("🏆 Top 10 Bridges par TVL")
+top10 = df_active.nlargest(10, 'volume_24h')
 
-top10 = df_bridges.nlargest(10, 'tvl')
-
-# Graphique avec annotations
-fig_tvl = go.Figure()
-
-fig_tvl.add_trace(go.Bar(
+fig_vol = go.Figure()
+fig_vol.add_trace(go.Bar(
     x=top10['name'],
-    y=top10['tvl'],
+    y=top10['volume_24h'],
     marker=dict(
-        color=top10['tvl'],
+        color=top10['volume_24h'],
         colorscale=[[0, '#1F4E78'], [1, '#FF6B35']],
         showscale=False
     ),
-    text=[f"${v/1e9:.2f}B" for v in top10['tvl']],
+    text=[f"${v/1e9:.2f}B" for v in top10['volume_24h']],
     textposition='outside',
-    hovertemplate='<b>%{x}</b><br>TVL: $%{y:,.0f}<extra></extra>'
+    hovertemplate='<b>%{x}</b><br>Volume 24h: $%{y:,.0f}<extra></extra>'
 ))
 
-fig_tvl.update_layout(
+fig_vol.update_layout(
     showlegend=False,
     height=400,
     xaxis_tickangle=-45,
@@ -209,26 +198,21 @@ fig_tvl.update_layout(
     plot_bgcolor='rgba(0,0,0,0)',
     font=dict(family="Inter, sans-serif", color="#2C3E50"),
     xaxis=dict(showgrid=False, title=''),
-    yaxis=dict(showgrid=True, gridcolor='#F0F0F0', title='TVL (USD)')
+    yaxis=dict(showgrid=True, gridcolor='#F0F0F0', title='Volume 24h (USD)')
 )
+st.plotly_chart(fig_vol, use_container_width=True)
 
-st.plotly_chart(fig_tvl, use_container_width=True)
-
-# ============================================
-# NOUVEAUTÉ : ANALYSE DOMINANCE
-# ============================================
-
+# RÉPARTITION
 st.subheader("🥧 Répartition du marché")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    # Pie chart dominance
     fig_pie = px.pie(
         top10,
-        values='tvl',
+        values='volume_24h',
         names='name',
-        title='Dominance Top 10',
+        title='Dominance Top 10 (Volume 24h)',
         color_discrete_sequence=px.colors.sequential.Blues_r
     )
     fig_pie.update_traces(textposition='inside', textinfo='percent+label')
@@ -239,13 +223,12 @@ with col1:
     st.plotly_chart(fig_pie, use_container_width=True)
 
 with col2:
-    # Treemap
     fig_tree = px.treemap(
         top10,
         path=['name'],
-        values='tvl',
-        title='Treemap TVL',
-        color='dominance',
+        values='volume_24h',
+        title='Treemap Volume 24h',
+        color='dominance_volume',
         color_continuous_scale='Blues'
     )
     fig_tree.update_layout(
@@ -254,49 +237,15 @@ with col2:
     )
     st.plotly_chart(fig_tree, use_container_width=True)
 
-# ============================================
-# ANALYSE ACTIVITÉ (Volume/TVL Ratio)
-# ============================================
+# TABLEAU
+st.subheader("📋 Liste complète des bridges actifs")
 
-st.subheader("💹 Analyse d'activité (Ratio Volume/TVL)")
-
-top20_active = df_bridges.nlargest(20, 'volume_tvl_ratio')
-
-fig_activity = px.bar(
-    top20_active,
-    x='name',
-    y='volume_tvl_ratio',
-    title='',
-    labels={'volume_tvl_ratio': 'Ratio Volume/TVL (%)', 'name': 'Bridge'},
-    color='volume_tvl_ratio',
-    color_continuous_scale='Greens'
-)
-fig_activity.update_layout(
-    showlegend=False,
-    xaxis_tickangle=-45,
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(family="Inter, sans-serif", color="#2C3E50"),
-    xaxis=dict(showgrid=False),
-    yaxis=dict(showgrid=True, gridcolor='#F0F0F0')
-)
-st.plotly_chart(fig_activity, use_container_width=True)
-
-st.info("💡 **Ratio Volume/TVL** : Plus le ratio est élevé, plus le bridge est actif par rapport à ses liquidités")
-
-# ============================================
-# TABLEAU ENRICHI
-# ============================================
-
-st.subheader("📋 Liste complète des bridges")
-
-df_display = df_bridges[['name', 'tvl', 'volume_24h', 'chains_count', 'dominance', 'volume_tvl_ratio']].copy()
-df_display = df_display.sort_values('tvl', ascending=False)
-df_display['tvl'] = df_display['tvl'].apply(lambda x: f"${x/1e6:.2f}M")
+df_display = df_active[['name', 'volume_24h', 'volume_7d', 'chains_count', 'dominance_volume']].copy()
+df_display = df_display.sort_values('volume_24h', ascending=False)
 df_display['volume_24h'] = df_display['volume_24h'].apply(lambda x: f"${x/1e6:.2f}M")
-df_display['dominance'] = df_display['dominance'].apply(lambda x: f"{x:.2f}%")
-df_display['volume_tvl_ratio'] = df_display['volume_tvl_ratio'].apply(lambda x: f"{x:.2f}%")
-df_display.columns = ['Bridge', 'TVL', 'Volume 24h', 'Chains', 'Dominance', 'Activité']
+df_display['volume_7d'] = df_display['volume_7d'].apply(lambda x: f"${x/1e6:.2f}M")
+df_display['dominance_volume'] = df_display['dominance_volume'].apply(lambda x: f"{x:.2f}%")
+df_display.columns = ['Bridge', 'Volume 24h', 'Volume 7j', 'Chains', 'Dominance']
 
 st.dataframe(df_display, use_container_width=True, height=400, hide_index=True)
 
@@ -305,7 +254,7 @@ st.markdown("---")
 st.markdown(
     f"""
     <div style="text-align: center; font-family: 'Inter', sans-serif; font-size: 0.85rem; color: #999; margin-top: 2rem;">
-        <strong>XRSK Platform</strong> — {len(df_bridges)} bridges surveillés | Données actualisées toutes les 5 minutes | Source: DefiLlama<br>
+        <strong>XRSK Platform</strong> — {len(df_active)} bridges actifs | Données actualisées toutes les 5 minutes | Source: DefiLlama<br>
         Dernière mise à jour: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     </div>
     """,
