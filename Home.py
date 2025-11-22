@@ -81,7 +81,8 @@ def load_bridge_data():
     # Calcul dominance
     df['dominance'] = (df['tvl'] / df['tvl'].sum() * 100)
     # Ratio Volume/TVL (indicateur d'activité)
-    df['volume_tvl_ratio'] = (df['volume_24h'] / df['tvl'] * 100).fillna(0)
+    # Ratio Volume/TVL avec protection division par zéro
+    df['volume_tvl_ratio'] = df.apply(lambda row: (row['volume_24h'] / row['tvl'] * 100) if row['tvl'] > 0 else 0, axis=1)
     return df
 
 with st.spinner("🔄 Chargement des données bridges..."):
