@@ -1,3 +1,27 @@
+# ============================================
+# XRSK Platform - Correction Analytics.py
+# Fix: Slider errors + empty dataframe protection
+# ============================================
+
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "🔧 XRSK Platform - Patch Analytics.py" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host ""
+
+# Vérifier qu'on est dans le bon dossier
+if (-not (Test-Path "Home.py")) {
+    Write-Host "❌ Erreur: Vous n'êtes pas dans le dossier xrsk-platform" -ForegroundColor Red
+    Write-Host "Exécutez: cd C:\Users\Matt\Documents\xrsk-platform" -ForegroundColor Yellow
+    exit 1
+}
+
+Write-Host "📁 Dossier vérifié: xrsk-platform" -ForegroundColor Green
+Write-Host ""
+
+# Créer le fichier Analytics.py corrigé
+Write-Host "📝 Création du fichier Analytics.py corrigé..." -ForegroundColor Yellow
+
+$analyticsContent = @'
 """
 XRSK Platform - Bridge Analytics
 """
@@ -156,3 +180,27 @@ with col2:
 # 1. Créer hooks/exporters.py avec fonctions export
 # 2. Importer ici et ajouter boutons download
 # ============================================
+'@
+
+# Écrire le fichier
+$analyticsPath = "pages/1_📊_Analytics.py"
+Set-Content -Path $analyticsPath -Value $analyticsContent -Encoding UTF8
+
+Write-Host "✅ Fichier Analytics.py corrigé créé" -ForegroundColor Green
+Write-Host ""
+
+# Git add, commit, push
+Write-Host "📤 Push sur GitHub..." -ForegroundColor Yellow
+
+git add .
+git commit -m "Fix Analytics page - add empty dataframe protection and error handling"
+git push origin main
+
+Write-Host ""
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "✅ CORRECTION TERMINÉE !" -ForegroundColor Green
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "⏳ Streamlit Cloud va redéployer automatiquement (1-2 min)" -ForegroundColor Yellow
+Write-Host "🌐 Vérifie ton site dans 2 minutes !" -ForegroundColor Green
+Write-Host ""
