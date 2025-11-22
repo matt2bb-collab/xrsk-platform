@@ -28,13 +28,9 @@ st.header("👤 Contributeur")
 st.markdown("""
 ### Expert Conformité Crypto
 
-**Fonctionnaire territorial français** - Service Finance Publique
+**xxxxx** - Lorem ipsum
 
 **Certifications & Expertise**
-- 🎓 Certifié AMF (Autorité des Marchés Financiers)
-- 📚 CIF en cours (Conseiller en Investissement Financier)
-- 🇪🇺 Expert régulations crypto : MiCA, DORA, TFR
-- 💼 Spécialiste finance publique locale
 
 **Domaines de recherche**
 - Conformité réglementaire DeFi
