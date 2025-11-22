@@ -37,4 +37,4 @@ Personal research project - Non-commercial use
 
 ## 👤 Author
 
-Expert conformité crypto MiCA/DORA | Certifié AMF
+ | 
