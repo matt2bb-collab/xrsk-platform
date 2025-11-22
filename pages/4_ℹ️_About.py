@@ -13,7 +13,7 @@ st.markdown("---")
 st.header("🎯 Mission")
 
 st.markdown("""
-**XRSK Platform** est un projet de recherche visant à **quantifier les risques cross-chain** 
+**XRSK Platform** est un projet de recherche indépendante visant à **quantifier les risques cross-chain** 
 pour construire un écosystème DeFi plus sûr et conforme aux régulations européennes.
 
 Notre objectif est de fournir aux utilisateurs, développeurs, et régulateurs des outils 
@@ -26,7 +26,7 @@ st.markdown("---")
 st.header("👤 Contributeur")
 
 st.markdown("""
-### Expert Conformité Crypto
+### Lorem ipsum
 
 **xxxxx** - Lorem ipsum
 

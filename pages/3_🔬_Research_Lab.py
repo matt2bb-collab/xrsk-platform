@@ -21,7 +21,7 @@ with st.container():
     
     with col1:
         st.markdown("""
-        **Statut** : 🟡 En préparation - Soumission ArXiv prévue décembre 2025
+        **Statut** : 🟡 En préparation - Soumission ArXiv prévue 2025/2026
         
         **Résumé**
         
@@ -51,10 +51,10 @@ with st.container():
         st.info("""
         **Auteur**
         
-        Expert conformité crypto
-        - Certifié AMF
-        - CIF en cours
-        - Spécialité : MiCA/DORA
+        Lorem ipsum
+        - Lorem ipsum
+        - Lorem ipsum
+        - Lorem ipsum
         
         **Cible**
         
