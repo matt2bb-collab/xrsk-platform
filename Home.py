@@ -15,7 +15,7 @@ st.set_page_config(
     page_title="XRSK Platform - Cross-Chain Risk Intelligence",
     page_icon="🔗",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # ============================================
@@ -26,20 +26,76 @@ XRSK_CSS = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
     
+    /* Cache menu Streamlit et footer */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    [data-testid="stSidebar"] {display: none;}
+    /* Sidebar stylisée proprement */
+    [data-testid="stSidebar"] {
+        background-color: #FFFFFF;
+        border-right: 1px solid #E8E8E8;
+    }
     
-    .stApp {background-color: #FAFAFA;}
+    [data-testid="stSidebar"] > div:first-child {
+        padding-top: 2rem;
+    }
     
+    /* Logo/titre dans sidebar */
+    [data-testid="stSidebar"] h1 {
+        font-family: 'Playfair Display', serif !important;
+        font-size: 1.5rem !important;
+        color: #1F4E78 !important;
+        margin-bottom: 2rem !important;
+        padding: 0 1rem;
+    }
+    
+    /* Navigation links sidebar */
+    [data-testid="stSidebar"] .stMarkdown {
+        font-family: 'Inter', sans-serif !important;
+    }
+    
+    /* Page links dans sidebar */
+    [data-testid="stSidebarNav"] {
+        padding-top: 1rem;
+    }
+    
+    [data-testid="stSidebarNav"] a {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.95rem !important;
+        color: #2C3E50 !important;
+        padding: 0.8rem 1rem !important;
+        border-radius: 6px !important;
+        margin: 0.2rem 0.5rem !important;
+        transition: all 0.2s !important;
+    }
+    
+    [data-testid="stSidebarNav"] a:hover {
+        background-color: #F8F9FA !important;
+        color: #1F4E78 !important;
+    }
+    
+    [data-testid="stSidebarNav"] a[aria-current="page"] {
+        background-color: #1F4E78 !important;
+        color: white !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Background général */
+    .stApp {
+        background-color: #FAFAFA;
+    }
+    
+    /* Container principal */
     .block-container {
         padding-top: 2rem;
         padding-bottom: 3rem;
         max-width: 1400px;
-        margin: 0 auto;
     }
+    
+    /* ============================================
+       TYPOGRAPHY
+       ============================================ */
     
     h1 {
         font-family: 'Playfair Display', serif !important;
@@ -73,6 +129,10 @@ XRSK_CSS = """
         color: #444 !important;
     }
     
+    /* ============================================
+       METRICS
+       ============================================ */
+    
     [data-testid="stMetricValue"] {
         font-family: 'Playfair Display', serif !important;
         font-size: 2.2rem !important;
@@ -89,6 +149,11 @@ XRSK_CSS = """
         letter-spacing: 0.05em !important;
     }
     
+    [data-testid="stMetricDelta"] {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.8rem !important;
+    }
+    
     [data-testid="metric-container"] {
         background: white;
         padding: 1.5rem;
@@ -96,6 +161,10 @@ XRSK_CSS = """
         box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         border: 1px solid #F0F0F0;
     }
+    
+    /* ============================================
+       DATAFRAMES
+       ============================================ */
     
     [data-testid="stDataFrame"] th {
         background-color: #F8F9FA !important;
@@ -114,11 +183,19 @@ XRSK_CSS = """
         border-bottom: 1px solid #F0F0F0 !important;
     }
     
+    /* ============================================
+       DIVIDERS
+       ============================================ */
+    
     hr {
         margin: 2.5rem 0 !important;
         border: none !important;
         border-top: 1px solid #E8E8E8 !important;
     }
+    
+    /* ============================================
+       CUSTOM CLASSES
+       ============================================ */
     
     .xrsk-baseline {
         font-family: 'Inter', sans-serif;
@@ -131,6 +208,28 @@ XRSK_CSS = """
 """
 
 st.markdown(XRSK_CSS, unsafe_allow_html=True)
+
+# ============================================
+# SIDEBAR INFO
+# ============================================
+
+with st.sidebar:
+    st.markdown("# 🔗 XRSK")
+    st.markdown("---")
+    st.markdown("""
+    **Cross-Chain Risk Intelligence**
+    
+    📊 Real-time bridge analytics  
+    🔬 DeFi compliance research  
+    📈 MiCA/DORA framework
+    """)
+    st.markdown("---")
+    st.markdown(f"""
+    <div style="font-size: 0.75rem; color: #999; text-align: center;">
+        Dernière mise à jour<br>
+        {datetime.now().strftime('%H:%M:%S')}
+    </div>
+    """, unsafe_allow_html=True)
 
 # ============================================
 # HEADER
